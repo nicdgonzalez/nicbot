@@ -1,0 +1,37 @@
+# Author: Nicolas Gonzalez <nicdgonzalez@github>
+# Specify rules/patterns for files that Git should not track.
+
+# General {{{
+
+*.env
+
+# }}}
+
+# Python {{{
+
+__pycache__/*
+!__init__.py
+!__main__.py
+
+# Distribution/Packaging
+build/*
+dist/*
+*.egg-info/*
+
+# Environments
+venv/*
+
+# Sphinx
+docs/_build/*
+
+# mypy
+.mypy_cache/*
+
+# }}}
+
+# Javascript {{{
+
+node_modules/*
+package-lock.json
+
+# }}}
