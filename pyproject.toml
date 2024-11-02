@@ -1,0 +1,13 @@
+[project]
+name = "nicbot"
+version = "0.1.0"
+description = "A general-purpose bot that runs on Discord"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "discord-py>=2.4.0",
+    "isort>=5.13.2",
+    "jisho-api>=0.1.8",
+    "overrides>=7.7.0",
+    "python-dotenv>=1.0.1",
+]
