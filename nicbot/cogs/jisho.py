@@ -100,7 +100,7 @@ class Jisho(commands.Cog):
             f"**Reading**: {reading}\n"
             f"**JLPT**: {jlpt}\n"
             f"**Parts of Speech**: {parts_of_speech}\n"
-            f"**English Defintions**: {english_definitions}\n"
+            f"**English Definitions**: {english_definitions}\n"
             f"**Antonyms**: {antonyms}\n"
         )
 
