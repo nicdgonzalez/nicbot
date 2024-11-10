@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import datetime as dt
-import logging
-import pathlib
 import argparse
+import logging
 import os
 from typing import TYPE_CHECKING
 
 from .bot import NicBot
+from .logger import start_logging
 
 try:
     import dotenv
@@ -43,32 +42,10 @@ def main() -> None:
     else:
         level = logging.DEBUG
 
-    start_logger(level)
+    start_logging(level)
 
     bot = NicBot()
-    bot.run(DISCORD_TOKEN)
-
-
-def start_logger(level: LoggingLevel) -> None:
-    formatter = logging.Formatter(
-        fmt="%(asctime)s %(levelname)s %(name)s] %(message)s",
-        datefmt="%Y-%m-%dT%H:%M:%S%z",  # ISO 8601 format
-    )
-
-    # The logs directory lives at the same level as the current directory.
-    logs_dirpath = pathlib.Path(__file__).parents[1].joinpath("logs")
-
-    if not logs_dirpath.exists():
-        logs_dirpath.mkdir()
-
-    today = dt.datetime.now()
-    log_filepath = logs_dirpath.joinpath(today.strftime("%Y-%m-%d.log"))
-
-    file_handler = logging.FileHandler(log_filepath, mode="a")
-    file_handler.setFormatter(formatter)
-
-    logging.root.addHandler(file_handler)
-    logging.root.setLevel(level)
+    bot.run(DISCORD_TOKEN, log_handler=None)
 
 
 if __name__ == "__main__":
