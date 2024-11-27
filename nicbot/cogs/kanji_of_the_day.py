@@ -232,16 +232,26 @@ class KanjiOfTheDay(commands.Cog):
     async def on_ready(self) -> None:
         _log.info(f"Loaded cog {self.__class__.__name__!r}")
 
-    # fmt: off
     @commands.command()
     async def kotd(
         self,
         ctx: commands.Context[NicBot],
         /,
-        jlpt: Literal["n5", "N5", "n4", "N4", "n3", "N3", "n2", "N2", "n1", "N1", "any", "ANY"] = "ANY",  # noqa: E501
+        jlpt: Literal[
+            "n5",
+            "N5",
+            "n4",
+            "N4",
+            "n3",
+            "N3",
+            "n2",
+            "N2",
+            "n1",
+            "N1",
+            "any",
+            "ANY",
+        ] = "ANY",
     ) -> None:
-        # fmt: on
-
         # Allow lowercase keys for a better user experience, but convert
         # to uppercase because that is what the dictionary is expecting.
         jlpt = jlpt.upper()
@@ -254,20 +264,18 @@ class KanjiOfTheDay(commands.Cog):
         response = Kanji.request(kanji_random)
         entry = response.data
 
+        # The entry's kanji is returned with a newline at the end.
         kanji = entry.kanji.strip()
-
-        # The number of lines it takes to write this kanji.
-        strokes = entry.strokes
-
-        # Chinese reading(s). Typically used when the word has multiple kanji.
-        on = entry.main_readings.on
-        reading_onyomi = ", ".join(on) if iter(on) else on
 
         # Japanese reading(s).
         kun = entry.main_readings.kun
         reading_kunyomi = (
             ", ".join(kun) if kun is not None and iter(kun) else str(kun)
         )
+
+        # Chinese reading(s). Typically used when the word has multiple kanji.
+        on = entry.main_readings.on
+        reading_onyomi = ", ".join(on) if iter(on) else on
 
         # TODO: This is not working as expected... grade is always None.
         #
@@ -302,15 +310,22 @@ class KanjiOfTheDay(commands.Cog):
 
         # Limit the number of examples to use.
         examples_on = entry.reading_examples.on[0:3]
-        examples_kun = entry.reading_examples.kun[0:3]
+        examples_kun = (
+            entry.reading_examples.kun[0:3]
+            if entry.reading_examples.kun is not None
+            else []
+        )
 
         def convert_to_vocabulary(e: object) -> str:
             return (
-                f"- **{e.kanji}** ({e.reading}): {"; ".join(e.meanings[0:5])}"
+                f"- **{e.kanji}** ({e.reading}): {"; ".join(e.meanings[0:2])}"
             )
 
-        vocabulary = list(map(convert_to_vocabulary, examples_on))
-        vocabulary += list(map(convert_to_vocabulary, examples_kun))
+        vocabulary = list(map(convert_to_vocabulary, examples_kun))
+        vocabulary += list(map(convert_to_vocabulary, examples_on))
+
+        # The number of lines it takes to write this kanji.
+        strokes = entry.strokes
 
         message = f"""\
 __**Kanji of the day**__: {kanji}
@@ -318,8 +333,8 @@ __**Kanji of the day**__: {kanji}
 **JLPT**: {jlpt}
 
 **Main readings**:
-- **On'yomi**: {reading_onyomi}
 - **Kun'yomi**: {reading_kunyomi}
+- **On'yomi**: {reading_onyomi}
 
 **Main meaning(s)**:
   {main_meanings}
