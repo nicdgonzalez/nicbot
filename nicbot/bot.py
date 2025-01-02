@@ -1,6 +1,7 @@
 import logging
 import os
 import pathlib
+import random
 import tomllib
 from typing import Any
 
@@ -66,9 +67,14 @@ class NicBot(commands.Bot):
                 _log.error(f"unable to load extension {name!r}: {exc}")
 
     async def on_ready(self) -> None:
+        activities = [
+            "僕のヒーローアカデミア",
+            "24/7 Minto Karaoke Livestream",
+        ]
+
         activity = discord.Activity(
             type=discord.ActivityType.watching,
-            name="僕のヒーローアカデミア",
+            name=random.choice(activities[1:]),
         )
 
         assert isinstance(activity, discord.Activity)

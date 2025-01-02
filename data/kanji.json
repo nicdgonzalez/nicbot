@@ -1,32 +1,14 @@
-from __future__ import annotations
-
-import logging
-import pathlib
-import random
-from typing import Literal, cast
-
-from discord import File
-from discord.ext import commands
-from jisho_api.kanji import Kanji
-
-from ..bot import NicBot
-from ..utils import auto_add_cogs
-
-_log = logging.getLogger(__name__)
-
-# fmt: off
-KANJI = {
-    "N5": (
+{
+    "N5": [
         "日", "一", "国", "人", "年", "大", "十", "二", "本", "中", "長", "出",
         "三", "時", "行", "見", "月", "後", "前", "生", "五", "間", "上", "東",
         "四", "今", "金", "九", "入", "学", "高", "円", "子", "外", "八", "六",
         "下", "来", "気", "小", "七", "山", "話", "女", "北", "午", "百", "書",
         "先", "名", "川", "千", "水", "半", "男", "西", "電", "校", "語", "土",
         "木", "聞", "食", "車", "何", "南", "万", "毎", "白", "天", "母", "火",
-        "右", "読", "友", "左", "休", "父", "雨",
-    ),
-
-    "N4": (
+        "右", "読", "友", "左", "休", "父", "雨"
+    ],
+    "N4": [
         "会", "同", "事", "自", "社", "発", "者", "地", "業", "方", "新", "場",
         "員", "立", "開", "手", "力", "問", "代", "明", "動", "京", "目", "通",
         "言", "理", "体", "田", "主", "題", "意", "不", "作", "用", "度", "強",
@@ -40,10 +22,10 @@ KANJI = {
         "歌", "買", "悪", "図", "週", "室", "歩", "風", "紙", "黒", "花", "春",
         "赤", "青", "館", "屋", "色", "走", "秋", "夏", "習", "駅", "洋", "旅",
         "服", "夕", "借", "曜", "飲", "肉", "貸", "堂", "鳥", "飯", "勉", "冬",
-        "昼", "茶", "弟", "牛", "魚", "兄", "犬", "妹", "姉", "漢",
-    ),
+        "昼", "茶", "弟", "牛", "魚", "兄", "犬", "妹", "姉", "漢"
+    ],
 
-    "N3": (
+    "N3": [
         "政", "議", "民", "連", "対", "部", "合", "市", "内", "相", "定", "回",
         "選", "米", "実", "関", "決", "全", "表", "戦", "経", "最", "現", "調",
         "化", "当", "約", "首", "法", "性", "要", "制", "治", "務", "成", "期",
@@ -74,10 +56,9 @@ KANJI = {
         "寝", "暗", "盗", "吸", "陽", "御", "歯", "忘", "雪", "吹", "娘", "誤",
         "洗", "慣", "礼", "窓", "昔", "貧", "怒", "泳", "祖", "杯", "疲", "皆",
         "鳴", "腹", "煙", "眠", "怖", "耳", "頂", "箱", "晩", "寒", "髪", "忙",
-        "才", "靴", "恥", "偶", "偉", "猫", "幾",
-    ),
-
-    "N2": (
+        "才", "靴", "恥", "偶", "偉", "猫", "幾"
+    ],
+    "N2": [
         "党", "協", "総", "区", "領", "県", "設", "改", "府", "査", "委", "軍",
         "団", "各", "島", "革", "村", "勢", "減", "再", "税", "営", "比", "防",
         "補", "境", "導", "副", "算", "輸", "述", "線", "農", "州", "武", "象",
@@ -108,10 +89,9 @@ KANJI = {
         "召", "缶", "隻", "脂", "蒸", "肌", "耕", "鈍", "泥", "隅", "灯", "辛",
         "磨", "麦", "姓", "筒", "鼻", "粒", "詞", "胃", "畳", "机", "膚", "濯",
         "塔", "沸", "灰", "菓", "帽", "枯", "涼", "舟", "貝", "符", "憎", "皿",
-        "肯", "燥", "畜", "挟", "曇", "滴", "伺",
-    ),
-
-    "N1": (
+        "肯", "燥", "畜", "挟", "曇", "滴", "伺"
+    ],
+    "N1": [
         "氏", "統", "保", "第", "結", "派", "案", "策", "基", "価", "提", "挙",
         "応", "企", "検", "藤", "沢", "裁", "証", "援", "施", "井", "護", "展",
         "態", "鮮", "視", "条", "幹", "独", "宮", "率", "衛", "張", "監", "環",
@@ -214,143 +194,6 @@ KANJI = {
         "謁", "斤", "嵩", "捺", "蓉", "茉", "袈", "燿", "誼", "冶", "栞", "墾",
         "勁", "菖", "旦", "椋", "叡", "紬", "胤", "凜", "亥", "爵", "脹", "麟",
         "莉", "汰", "瑶", "瑳", "耶", "椰", "絃", "丞", "璃", "奎", "塑", "昂",
-        "柾", "熙", "菫", "諒", "鞠", "崚", "濫", "捷",
-    ),
+        "柾", "熙", "菫", "諒", "鞠", "崚", "濫", "捷"
+    ]
 }
-# fmt: on
-
-JLPT_VALID_VALUES = tuple(KANJI.keys())
-
-
-class KanjiOfTheDay(commands.Cog):
-    """Command for sending the Kanji of the day to the Sunflower Field."""
-
-    def __init__(self, bot: commands.Bot, /) -> None:
-        self.bot = cast(NicBot, bot)
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        _log.info(f"Loaded cog {self.__class__.__name__!r}")
-
-    @commands.command()
-    async def kotd(
-        self,
-        ctx: commands.Context[NicBot],
-        /,
-        jlpt: Literal[
-            "n5",
-            "N5",
-            "n4",
-            "N4",
-            "n3",
-            "N3",
-            "n2",
-            "N2",
-            "n1",
-            "N1",
-            "any",
-            "ANY",
-        ] = "ANY",
-    ) -> None:
-        # Allow lowercase keys for a better user experience, but convert
-        # to uppercase because that is what the dictionary is expecting.
-        jlpt = jlpt.upper()
-
-        if jlpt == "ANY":
-            jlpt = random.choice(JLPT_VALID_VALUES)
-
-        kanji_random = random.choice(KANJI[jlpt])
-
-        response = Kanji.request(kanji_random)
-        entry = response.data
-
-        # The entry's kanji is returned with a newline at the end.
-        kanji = entry.kanji.strip()
-
-        # Japanese reading(s).
-        kun = entry.main_readings.kun
-        reading_kunyomi = (
-            ", ".join(kun) if kun is not None and iter(kun) else str(kun)
-        )
-
-        # Chinese reading(s). Typically used when the word has multiple kanji.
-        on = entry.main_readings.on
-        reading_onyomi = ", ".join(on) if iter(on) else on
-
-        # TODO: This is not working as expected... grade is always None.
-        #
-        # The school year when a student typically learns this kanji.
-        grade = entry.meta.education.grade
-
-        if grade is None:
-            taught_in_school_at = "❌ This kanji is not taught in school."
-        else:
-            taught_in_school_at = f"⭕ This kanji is taught in grade {grade}."
-
-        # I don't want to remove the code since I still plan on using it.
-        # This is to silence the unused variable LSP warning.
-        assert taught_in_school_at
-
-        # A list of meanings for this kanji.
-        main_meanings = ", ".join(entry.main_meanings)
-
-        # Get the PNG image with the strokes labeled. The file name is
-        # the Unicode hexadecimal value of the character (without '0x').
-        kanji_as_unicode_hex = hex(ord(kanji))
-
-        if kanji_as_unicode_hex.startswith("-"):
-            filename = kanji_as_unicode_hex.removeprefix("-0x") + ".png"
-        else:
-            filename = kanji_as_unicode_hex.removeprefix("0x") + ".png"
-
-        # NOTE: This should be the directory containing the nicbot directory.
-        root = pathlib.Path(__file__).parents[2].resolve()
-        assert root.joinpath("nicbot").exists()
-        filepath = root.joinpath("data", "stroke_orders", filename)
-
-        # Limit the number of examples to use.
-        examples_on = entry.reading_examples.on[0:3]
-        examples_kun = (
-            entry.reading_examples.kun[0:3]
-            if entry.reading_examples.kun is not None
-            else []
-        )
-
-        def convert_to_vocabulary(e: object) -> str:
-            return (
-                f"- **{e.kanji}** ({e.reading}): {"; ".join(e.meanings[0:2])}"
-            )
-
-        vocabulary = list(map(convert_to_vocabulary, examples_kun))
-        vocabulary += list(map(convert_to_vocabulary, examples_on))
-
-        # The number of lines it takes to write this kanji.
-        strokes = entry.strokes
-
-        message = f"""\
-__**Kanji of the day**__: {kanji}
-
-**JLPT**: {jlpt}
-
-**Main readings**:
-- **Kun'yomi**: {reading_kunyomi}
-- **On'yomi**: {reading_onyomi}
-
-**Main meaning(s)**:
-  {main_meanings}
-
-**Vocabulary**:
-{'\n'.join(vocabulary)}
-
-Try writing the kanji yourself!
-And don't forget to share it with us ৻(  •̀ ᗜ •́  ৻)
-
-**Number of strokes**: {strokes}"""
-
-        with open(filepath, "rb") as f:
-            await ctx.reply(message, file=File(f))
-
-
-# Required at the end of all extension modules.
-async def setup(bot: commands.Bot, /) -> None:
-    await auto_add_cogs(bot)
